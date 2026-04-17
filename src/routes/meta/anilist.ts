@@ -7,7 +7,6 @@ import { StreamingServers } from '@consumet/extensions/dist/models';
 
 import cache from '../../utils/cache';
 import { redis } from '../../main';
-import NineAnime from '@consumet/extensions/dist/providers/anime/9anime';
 
 const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
   fastify.get('/', (_, rp) => {
@@ -167,21 +166,6 @@ const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
 
     reply.status(200).send(res);
   });
-
-  fastify.get(
-    '/recent-episodes',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const provider = (request.query as { provider: 'gogoanime' | 'zoro' }).provider;
-      const page = (request.query as { page: number }).page;
-      const perPage = (request.query as { perPage: number }).perPage;
-
-      const anilist = generateAnilistMeta(provider);
-
-      const res = await anilist.fetchRecentEpisodes(provider, page, perPage);
-
-      reply.status(200).send(res);
-    },
-  ),
     fastify.get('/random-anime', async (request: FastifyRequest, reply: FastifyReply) => {
       const anilist = generateAnilistMeta();
 
@@ -349,16 +333,6 @@ const generateAnilistMeta = (provider: string | undefined = undefined): Anilist 
     let possibleProvider = PROVIDERS_LIST.ANIME.find(
       (p) => p.name.toLowerCase() === provider.toLocaleLowerCase(),
     );
-
-    if (possibleProvider instanceof NineAnime) {
-      possibleProvider = new ANIME.NineAnime(
-        process.env?.NINE_ANIME_HELPER_URL,
-        {
-          url: process.env?.NINE_ANIME_PROXY as string,
-        },
-        process.env?.NINE_ANIME_HELPER_KEY as string,
-      );
-    }
 
     return new META.Anilist(possibleProvider, {
       url: process.env.PROXY as string | string[],

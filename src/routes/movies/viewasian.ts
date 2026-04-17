@@ -3,25 +3,28 @@ import { MOVIES } from '@consumet/extensions';
 import { StreamingServers } from '@consumet/extensions/dist/models';
 
 const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
-  const viewAsian = new MOVIES.ViewAsian();
+  // Use FlixHQ instead of ViewAsian
+  const flixhq = new MOVIES.FlixHQ();
 
   fastify.get('/', (_, rp) => {
     rp.status(200).send({
       intro:
-        "Welcome to the viewAsian provider: check out the provider's website @ https://viewAsian.to/",
+        "Welcome to the FlixHQ provider: check out the provider's website @ https://flixhq.to/",
       routes: ['/:query', '/info', '/watch'],
-      documentation: 'https://docs.consumet.org/#tag/viewAsian',
+      documentation: 'https://docs.consumet.org/#tag/flixhq',
     });
   });
 
   fastify.get('/:query', async (request: FastifyRequest, reply: FastifyReply) => {
     const query = decodeURIComponent((request.params as { query: string }).query);
+    const page = (request.query as { page: number })?.page || 1;
 
-    const page = (request.query as { page: number }).page;
-
-    const res = await viewAsian.search(query, page);
-
-    reply.status(200).send(res);
+    try {
+      const res = await flixhq.search(query, page);
+      reply.status(200).send(res);
+    } catch (err) {
+      reply.status(500).send({ message: 'Search failed' });
+    }
   });
 
   fastify.get('/info', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -33,15 +36,11 @@ const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
       });
 
     try {
-      const res = await viewAsian
-        .fetchMediaInfo(id)
-        .catch((err) => reply.status(404).send({ message: err }));
-
+      const res = await flixhq.fetchMediaInfo(id);
       reply.status(200).send(res);
     } catch (err) {
       reply.status(500).send({
-        message:
-          'Something went wrong. Please try again later. or contact the developers.',
+        message: 'Something went wrong. Please try again later.',
       });
     }
   });
@@ -57,15 +56,10 @@ const routes = async (fastify: FastifyInstance, options: RegisterOptions) => {
       return reply.status(400).send({ message: 'Invalid server query' });
 
     try {
-      const res = await viewAsian
-        .fetchEpisodeSources(episodeId, server)
-        .catch((err) => reply.status(404).send({ message: 'Media Not found.' }));
-
+      const res = await flixhq.fetchEpisodeSources(episodeId, server);
       reply.status(200).send(res);
     } catch (err) {
-      reply
-        .status(500)
-        .send({ message: 'Something went wrong. Please try again later.' });
+      reply.status(500).send({ message: 'Something went wrong. Please try again later.' });
     }
   });
 };
