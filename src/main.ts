@@ -4,11 +4,6 @@ import Fastify from 'fastify';
 import FastifyCors from '@fastify/cors';
 import fs from 'fs';
 
-import books from './routes/books';
-import anime from './routes/anime';
-import manga from './routes/manga';
-import comics from './routes/comics';
-import lightnovels from './routes/light-novels';
 import movies from './routes/movies';
 import meta from './routes/meta';
 import news from './routes/news';
@@ -120,7 +115,7 @@ export const tmdbApi = process.env.TMDB_KEY && process.env.TMDB_KEY;
         }
       },
       1000 * 60 * 60,
-    );
+    );  
   }
 
   console.log(chalk.green(`Starting server on port ${PORT}... 🚀`));
@@ -131,11 +126,6 @@ export const tmdbApi = process.env.TMDB_KEY && process.env.TMDB_KEY;
       chalk.yellowBright('TMDB api key not found. the TMDB meta route may not work.'),
     );
 
-  await fastify.register(books, { prefix: '/books' });
-  await fastify.register(anime, { prefix: '/anime' });
-  await fastify.register(manga, { prefix: '/manga' });
-  //await fastify.register(comics, { prefix: '/comics' });
-  await fastify.register(lightnovels, { prefix: '/light-novels' });
   await fastify.register(movies, { prefix: '/movies' });
   await fastify.register(meta, { prefix: '/meta' });
   await fastify.register(news, { prefix: '/news' });
